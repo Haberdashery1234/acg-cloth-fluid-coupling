@@ -100,42 +100,53 @@ Cloth::Cloth(ArgParser *_args)
       p.setFixed(false);
     }
   }
-  
+
+  // form edges
   for (int i = 0; i < nx; i++)
   {
     for (int j = 0; j < ny; j++)
     {
-      ClothParticle &p = getParticle(i,j);      
+      ClothParticle &p = getParticle(i,j);
       if (i > 0)
       {
         const ClothParticle &p1 = getParticle(i-1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        p.addEdge(new Edge(&pPos, &p1Pos));
+        Edge *e = new Edge(&pPos, &p1Pos);
+        p.addEdge(e);
+        addEdgeToCloth(e);
       }
       if (j > 0)
       {
         const ClothParticle &p1 = getParticle(i,j-1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        p.addEdge(new Edge(&pPos, &p1Pos));
+        Edge *e = new Edge(&pPos, &p1Pos);
+        p.addEdge(e);
+        addEdgeToCloth(e);
       }
       if (i < nx-1)
       {
         const ClothParticle &p1 = getParticle(i+1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        p.addEdge(new Edge(&pPos, &p1Pos));
+        Edge *e = new Edge(&pPos, &p1Pos);
+        p.addEdge(e);
+        addEdgeToCloth(e);
       }
       if (j < ny-1)
       {
         const ClothParticle &p1 = getParticle(i,j+1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        p.addEdge(new Edge(&pPos, &p1Pos));
+        Edge *e = new Edge(&pPos, &p1Pos);
+        p.addEdge(e);
+        addEdgeToCloth(e);
       }
     }
   }
+
+  printEdges();
 
   // the fixed particles
   while (istr >> token)
@@ -363,7 +374,7 @@ void Cloth::Paint() const
     // =====================================================================================
     // render the cloth surface
     // =====================================================================================
-    
+
     if (args->surface)
     {
         glColor3f(1,1,1);
@@ -427,7 +438,7 @@ void Cloth::Animate()
 {
     // ASSIGNMENT:
     // move the vertices of the mesh
-    
+
     Vec3f sumForce;
     glDisable(GL_LIGHTING);
     glPointSize(3);
@@ -522,7 +533,7 @@ void Cloth::Animate()
                 p1.setVelocity((p1.getAcceleration()*args->timestep)+p1.getVelocity());
                 p1.setPosition(p1.getPosition()+(p1.getVelocity()*args->timestep));
             }
-            
+
             if (i > 0)
             {
                 ClothParticle &p2 = getParticle(i-1, j);
@@ -556,8 +567,8 @@ void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)
     Vec3f ab;
     float length_o;     // the original length
     float length;       // the current length
-    
-    
+
+
     if (!p1.isFixed() && !p2.isFixed())
     {
         ab_o = p1.getOriginalPosition()-p2.getOriginalPosition();
@@ -621,18 +632,18 @@ void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)
 }
 
 void CheckCollision(ClothParticle &p1, ClothParticle &p2)
-{  
+{
   if (!p1.isFixed() && !p2.isFixed())
   {
     return;
   }
   else if (!p1.isFixed() && p2.isFixed())
   {
-    
+
   }
   else if (p1.isFixed() && !p2.isFixed())
   {
-    
+
   }
 }
 
