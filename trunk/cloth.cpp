@@ -98,14 +98,19 @@ Cloth::Cloth(ArgParser *_args)
       p.setVelocity(Vec3f(0,0,0));
       p.setMass(mass);
       p.setFixed(false);
-      
+    }
+  }
+  
+  for (int i = 0; i < nx; i++)
+  {
+    for (int j = 0; j < ny; j++)
+    {
+      ClothParticle &p = getParticle(i,j);      
       if (i > 0)
       {
         const ClothParticle &p1 = getParticle(i-1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        printf("1: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
-        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
         p.addEdge(new Edge(&pPos, &p1Pos));
       }
       if (j > 0)
@@ -113,8 +118,6 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i,j-1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        printf("2: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
-        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
         p.addEdge(new Edge(&pPos, &p1Pos));
       }
       if (i < nx-1)
@@ -122,8 +125,6 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i+1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        printf("3: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
-        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
         p.addEdge(new Edge(&pPos, &p1Pos));
       }
       if (j < ny-1)
@@ -131,17 +132,7 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i,j+1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        printf("4: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
-        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
         p.addEdge(new Edge(&pPos, &p1Pos));
-      }
-      printf("Point %d/%d %d/%d:\n", i, nx, j, ny);
-      for (int e = 0; e < p.getEdges().size(); e++)
-      {
-        printf("Edge %d/%d: ", e, p.getEdges().size());
-        printf("x: %f", p.getEdges().at(e)->getEndVertex()->x());
-        printf("\ty: %f", p.getEdges().at(e)->getEndVertex()->y());
-        printf("\tz: %f\n", p.getEdges().at(e)->getEndVertex()->z());
       }
     }
   }
