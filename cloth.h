@@ -1,6 +1,7 @@
 #ifndef _CLOTH_H_
 #define _CLOTH_H_
 
+#include <stdio.h>
 #include <vector>
 #include "argparser.h"
 #include "edge.h"
@@ -110,6 +111,26 @@ public:
     // PAINTING & ANIMATING
     void Paint() const;
     void Animate();
+    void addEdgeToCloth(Edge *e)
+    {
+      assert(e!=NULL);
+      cloth_edges.push_back(e);
+      printf("x:%f y:%f z:%f", e->getStartVertex()->x(), e->getStartVertex()->y(), e->getStartVertex()->z());
+      printf("     x:%f y:%f z:%f\n", e->getEndVertex()->x(), e->getEndVertex()->y(), e->getEndVertex()->z());
+    }
+    
+    void printEdges()
+    {
+      Edge *e;
+      for (unsigned int i = 0; i < cloth_edges.size(); i++)
+      {
+        e = cloth_edges[i];
+        std::cout << "EDGE: " << e << "\n";
+        printf("Edge %d/%d: ", i, cloth_edges.size());
+        printf("(S)x:%f y:%f z:%f", e->getStartVertex()->x(), e->getStartVertex()->y(), e->getStartVertex()->z());
+        printf("     (E)x:%f y:%f z:%f\n", e->getEndVertex()->x(), e->getEndVertex()->y(), e->getEndVertex()->z());
+      }
+    }
 
 private:
 
@@ -136,6 +157,7 @@ private:
     int nx, ny;
     ClothParticle *particles;
     BoundingBox box;
+    std::vector<Edge*> cloth_edges;
     // simulation parameters
     float damping;
     // spring constants
