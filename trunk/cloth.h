@@ -125,10 +125,10 @@ public:
       for (unsigned int i = 0; i < cloth_edges.size(); i++)
       {
         e = cloth_edges[i];
-        std::cout << "EDGE: " << e << "\n";
+        std::cout << "EDGE: " << e << " SV: " << e->getStartVertex() << " EV: " << e->getEndVertex() << "\n";
         printf("Edge %d/%d: ", i, cloth_edges.size());
         printf("(S)x:%f y:%f z:%f", e->getStartVertex()->x(), e->getStartVertex()->y(), e->getStartVertex()->z());
-        printf("     (E)x:%f y:%f z:%f\n", e->getEndVertex()->x(), e->getEndVertex()->y(), e->getEndVertex()->z());
+        printf("     (E)x:%f y:%f z:%f\n\n", e->getEndVertex()->x(), e->getEndVertex()->y(), e->getEndVertex()->z());
       }
     }
 
