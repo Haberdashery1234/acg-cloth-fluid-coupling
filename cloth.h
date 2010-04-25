@@ -73,6 +73,7 @@ public:
     }
     void addEdge(Edge *e)
     {
+      assert(e!=NULL);
       edges.push_back(e);
     }
     
