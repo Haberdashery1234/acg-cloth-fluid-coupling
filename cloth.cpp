@@ -112,7 +112,7 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i-1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(&pPos, &p1Pos);
+        Edge *e = new Edge(pPos, p1Pos);
         p.addEdge(e);
         addEdgeToCloth(e);
       }
@@ -121,7 +121,7 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i,j-1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(&pPos, &p1Pos);
+        Edge *e = new Edge(pPos, p1Pos);
         p.addEdge(e);
         addEdgeToCloth(e);
       }
@@ -130,7 +130,7 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i+1,j);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(&pPos, &p1Pos);
+        Edge *e = new Edge(pPos, p1Pos);
         p.addEdge(e);
         addEdgeToCloth(e);
       }
@@ -139,7 +139,7 @@ Cloth::Cloth(ArgParser *_args)
         const ClothParticle &p1 = getParticle(i,j+1);
         Vec3f pPos = p.getPosition();
         Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(&pPos, &p1Pos);
+        Edge *e = new Edge(pPos, p1Pos);
         p.addEdge(e);
         addEdgeToCloth(e);
       }

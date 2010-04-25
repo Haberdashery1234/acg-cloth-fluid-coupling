@@ -4,7 +4,7 @@
 #include "edge.h"
 
 // EDGE CONSTRUCTOR
-Edge::Edge(Vec3f *vs, Vec3f *ve) {
+Edge::Edge(Vec3f vs, Vec3f ve) {
   start_vertex = vs;
   end_vertex = ve;
   opposite = NULL;
@@ -23,9 +23,7 @@ Edge::~Edge() {
 
 float Edge::Length() const 
 {
-  Vec3f diff = Vec3f(start_vertex->x() - end_vertex->x(), 
-                     start_vertex->y() - end_vertex->y(), 
-                     start_vertex->z() - end_vertex->z());
+  Vec3f diff = Vec3f(start_vertex - end_vertex);
   return diff.Length();
 }
 
