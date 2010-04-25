@@ -1,7 +1,9 @@
 #ifndef _CLOTH_H_
 #define _CLOTH_H_
 
+#include <vector>
 #include "argparser.h"
+#include "edge.h"
 #include "boundingbox.h"
 
 // =====================================================================================
@@ -40,6 +42,10 @@ public:
     {
         return fixed;
     }
+    std::vector<Edge*> getEdges()
+    {
+      return edges;
+    }
     // MODIFIERS
     void setOriginalPosition(const Vec3f &p)
     {
@@ -65,12 +71,18 @@ public:
     {
         fixed = b;
     }
+    void addEdge(Edge *e)
+    {
+      edges.push_back(e);
+    }
+    
 private:
     // REPRESENTATION
     Vec3f original_position;
     Vec3f position;
     Vec3f velocity;
     Vec3f acceleration;
+    std::vector<Edge*> edges;
     float mass;
     bool fixed;
 };

@@ -12,6 +12,7 @@
 #endif
 
 #include "cloth.h"
+#include "edge.h"
 #include "argparser.h"
 #include <fstream>
 #include "vectors.h"
@@ -23,95 +24,141 @@ using namespace std;
 
 void insertNormal(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3, const Vec3f &p4);
 void DrawSpring(const Vec3f &a_o, const Vec3f &b_o, const Vec3f &a, const Vec3f &b, float correction);
+void CheckCollision(ClothParticle &p1, ClothParticle &p2);
 
 // ================================================================================
 // ================================================================================
 
 Cloth::Cloth(ArgParser *_args)
 {
-    args =_args;
+  args =_args;
 
-    // open the file
-    ifstream istr(args->cloth_file.c_str());
-    assert (istr != NULL);
-    string token;
+  // open the file
+  ifstream istr(args->cloth_file.c_str());
+  assert (istr != NULL);
+  string token;
 
-    // read in the simulation parameters
-    istr >> token >> k_structural;
-    assert (token == "k_structural");  // (units == N/m)  (N = kg*m/s^2)
-    istr >> token >> k_shear;
-    assert (token == "k_shear");
-    istr >> token >> k_bend;
-    assert (token == "k_bend");
-    istr >> token >> damping;
-    assert (token == "damping");
-    // istr >> token >> normal;
-    // assert (token == "normal");
-    // NOTE: correction factor == .1, means springs shouldn't stretch more than 10%
-    //       correction factor == 100, means don't do any correction
-    istr >> token >> provot_structural_correction;
-    assert (token == "provot_structural_correction");
-    istr >> token >> provot_shear_correction;
-    assert (token == "provot_shear_correction");
+  // read in the simulation parameters
+  istr >> token >> k_structural;
+  assert (token == "k_structural");  // (units == N/m)  (N = kg*m/s^2)
+  istr >> token >> k_shear;
+  assert (token == "k_shear");
+  istr >> token >> k_bend;
+  assert (token == "k_bend");
+  istr >> token >> damping;
+  assert (token == "damping");
+  // istr >> token >> normal;
+  // assert (token == "normal");
+  // NOTE: correction factor == .1, means springs shouldn't stretch more than 10%
+  //       correction factor == 100, means don't do any correction
+  istr >> token >> provot_structural_correction;
+  assert (token == "provot_structural_correction");
+  istr >> token >> provot_shear_correction;
+  assert (token == "provot_shear_correction");
 
-    // the cloth dimensions
-    istr >> token >> nx >> ny; // (units == meters)
-    assert (token == "m");
-    assert (nx >= 2 && ny >= 2);
+  // the cloth dimensions
+  istr >> token >> nx >> ny; // (units == meters)
+  assert (token == "m");
+  assert (nx >= 2 && ny >= 2);
 
-    // the corners of the cloth
-    Vec3f a,b,c,d;
-    istr >> token >> a;
-    assert (token == "p");
-    istr >> token >> b;
-    assert (token == "p");
-    istr >> token >> c;
-    assert (token == "p");
-    istr >> token >> d;
-    assert (token == "p");
+  // the corners of the cloth
+  Vec3f a,b,c,d;
+  istr >> token >> a;
+  assert (token == "p");
+  istr >> token >> b;
+  assert (token == "p");
+  istr >> token >> c;
+  assert (token == "p");
+  istr >> token >> d;
+  assert (token == "p");
 
-    // fabric weight  (units == kg/m^2)
-    // denim ~300 g/m^2
-    // silk ~70 g/m^2
-    float fabric_weight;
-    istr >> token >> fabric_weight;
-    assert (token == "fabric_weight");
-    float area = AreaOfTriangle(a,b,c) + AreaOfTriangle(a,c,d);
+  // fabric weight  (units == kg/m^2)
+  // denim ~300 g/m^2
+  // silk ~70 g/m^2
+  float fabric_weight;
+  istr >> token >> fabric_weight;
+  assert (token == "fabric_weight");
+  float area = AreaOfTriangle(a,b,c) + AreaOfTriangle(a,c,d);
 
-    // create the particles
-    particles = new ClothParticle[nx*ny];
-    float mass = area*fabric_weight / float(nx*ny);
-    for (int i = 0; i < nx; i++)
+  // create the particles
+  particles = new ClothParticle[nx*ny];
+  float mass = area*fabric_weight / float(nx*ny);
+  for (int i = 0; i < nx; i++)
+  {
+    float x = i/float(nx-1);
+    Vec3f ab = (1-x)*a + x*b;
+    Vec3f dc = (1-x)*d + x*c;
+    for (int j = 0; j < ny; j++)
     {
-        float x = i/float(nx-1);
-        Vec3f ab = (1-x)*a + x*b;
-        Vec3f dc = (1-x)*d + x*c;
-        for (int j = 0; j < ny; j++)
-        {
-            float y = j/float(ny-1);
-            ClothParticle &p = getParticle(i,j);
-            Vec3f abdc = (1-y)*ab + y*dc;
-            p.setOriginalPosition(abdc);
-            p.setPosition(abdc);
-            p.setVelocity(Vec3f(0,0,0));
-            p.setMass(mass);
-            p.setFixed(false);
-        }
+      float y = j/float(ny-1);
+      ClothParticle &p = getParticle(i,j);
+      Vec3f abdc = (1-y)*ab + y*dc;
+      p.setOriginalPosition(abdc);
+      p.setPosition(abdc);
+      p.setVelocity(Vec3f(0,0,0));
+      p.setMass(mass);
+      p.setFixed(false);
+      
+      if (i > 0)
+      {
+        const ClothParticle &p1 = getParticle(i-1,j);
+        Vec3f pPos = p.getPosition();
+        Vec3f p1Pos = p1.getPosition();
+        printf("1: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
+        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
+        p.addEdge(new Edge(&pPos, &p1Pos));
+      }
+      if (j > 0)
+      {
+        const ClothParticle &p1 = getParticle(i,j-1);
+        Vec3f pPos = p.getPosition();
+        Vec3f p1Pos = p1.getPosition();
+        printf("2: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
+        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
+        p.addEdge(new Edge(&pPos, &p1Pos));
+      }
+      if (i < nx-1)
+      {
+        const ClothParticle &p1 = getParticle(i+1,j);
+        Vec3f pPos = p.getPosition();
+        Vec3f p1Pos = p1.getPosition();
+        printf("3: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
+        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
+        p.addEdge(new Edge(&pPos, &p1Pos));
+      }
+      if (j < ny-1)
+      {
+        const ClothParticle &p1 = getParticle(i,j+1);
+        Vec3f pPos = p.getPosition();
+        Vec3f p1Pos = p1.getPosition();
+        printf("4: start: %f, %f, %f\n", pPos.x(), pPos.y(), pPos.z());
+        printf("     end: %f, %f, %f\n", p1Pos.x(), p1Pos.y(), p1Pos.z());
+        p.addEdge(new Edge(&pPos, &p1Pos));
+      }
+      printf("Point %d/%d %d/%d:\n", i, nx, j, ny);
+      for (int e = 0; e < p.getEdges().size(); e++)
+      {
+        printf("Edge %d/%d: ", e, p.getEdges().size());
+        printf("x: %f", p.getEdges().at(e)->getEndVertex()->x());
+        printf("\ty: %f", p.getEdges().at(e)->getEndVertex()->y());
+        printf("\tz: %f\n", p.getEdges().at(e)->getEndVertex()->z());
+      }
     }
+  }
 
-    // the fixed particles
-    while (istr >> token)
-    {
-        assert (token == "f");
-        int i,j;
-        float x,y,z;
-        istr >> i >> j >> x >> y >> z;
-        ClothParticle &p = getParticle(i,j);
-        p.setPosition(Vec3f(x,y,z));
-        p.setFixed(true);
-    }
+  // the fixed particles
+  while (istr >> token)
+  {
+    assert (token == "f");
+    int i,j;
+    float x,y,z;
+    istr >> i >> j >> x >> y >> z;
+    ClothParticle &p = getParticle(i,j);
+    p.setPosition(Vec3f(x,y,z));
+    p.setFixed(true);
+  }
 
-    computeBoundingBox();
+  computeBoundingBox();
 }
 
 // ================================================================================
@@ -582,6 +629,22 @@ void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)
     }
 }
 
+void CheckCollision(ClothParticle &p1, ClothParticle &p2)
+{  
+  if (!p1.isFixed() && !p2.isFixed())
+  {
+    return;
+  }
+  else if (!p1.isFixed() && p2.isFixed())
+  {
+    
+  }
+  else if (p1.isFixed() && !p2.isFixed())
+  {
+    
+  }
+}
+
 // ================================================================================
 // ================================================================================
 // some helper drawing functions
@@ -639,7 +702,7 @@ void DrawForce(const Vec3f &p, const Vec3f &f)
     glVertex3f(tmp.x(),tmp.y(),tmp.z());
 }
 
-void CheckCollision(
+
 
 // ================================================================================
 // ================================================================================
