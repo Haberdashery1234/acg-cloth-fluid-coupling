@@ -12,7 +12,6 @@
 #endif
 
 #include "cloth.h"
-#include "edge.h"
 #include "argparser.h"
 #include <fstream>
 #include "vectors.h"
@@ -101,53 +100,6 @@ Cloth::Cloth(ArgParser *_args)
     }
   }
 
-  // form edges
-  for (int i = 0; i < nx; i++)
-  {
-    for (int j = 0; j < ny; j++)
-    {
-      ClothParticle &p = getParticle(i,j);
-      if (i > 0)
-      {
-        const ClothParticle &p1 = getParticle(i-1,j);
-        Vec3f pPos = p.getPosition();
-        Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(pPos, p1Pos);
-        p.addEdge(e);
-        addEdgeToCloth(e);
-      }
-      if (j > 0)
-      {
-        const ClothParticle &p1 = getParticle(i,j-1);
-        Vec3f pPos = p.getPosition();
-        Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(pPos, p1Pos);
-        p.addEdge(e);
-        addEdgeToCloth(e);
-      }
-      if (i < nx-1)
-      {
-        const ClothParticle &p1 = getParticle(i+1,j);
-        Vec3f pPos = p.getPosition();
-        Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(pPos, p1Pos);
-        p.addEdge(e);
-        addEdgeToCloth(e);
-      }
-      if (j < ny-1)
-      {
-        const ClothParticle &p1 = getParticle(i,j+1);
-        Vec3f pPos = p.getPosition();
-        Vec3f p1Pos = p1.getPosition();
-        Edge *e = new Edge(pPos, p1Pos);
-        p.addEdge(e);
-        addEdgeToCloth(e);
-      }
-    }
-  }
-
-  printEdges();
-
   // the fixed particles
   while (istr >> token)
   {
@@ -161,6 +113,9 @@ Cloth::Cloth(ArgParser *_args)
   }
 
   computeBoundingBox();
+  
+  collision_boundary = box.maxDim()/(2*max2(nx,ny));
+  collision_boundary *= 1.1;
 }
 
 // ================================================================================
@@ -288,7 +243,7 @@ void Cloth::Paint() const
         {
             for (int j = 0; j < ny; j++)
             {
-                                // ASSIGNMENT:
+                // ASSIGNMENT:
                 // visualize the forces acting on each particle
                 const ClothParticle &p = getParticle(i,j);
                 if (args->updraft)
@@ -556,6 +511,7 @@ void Cloth::Animate()
             }
         }
     }
+    CheckCollision();
     glEnd();
     glEnable(GL_LIGHTING);
 }
@@ -631,19 +587,33 @@ void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)
     }
 }
 
-void CheckCollision(ClothParticle &p1, ClothParticle &p2)
+void Cloth::CheckCollision()
 {
-  if (!p1.isFixed() && !p2.isFixed())
+  for (int i = 0; i < nx; i++)
   {
-    return;
-  }
-  else if (!p1.isFixed() && p2.isFixed())
-  {
-
-  }
-  else if (p1.isFixed() && !p2.isFixed())
-  {
-
+    for (int j = 0; j < ny; j++)
+    {
+      ClothParticle &p = getParticle(i,j);
+      for (int k = 0; k < nx; k++)
+      {
+        for (int m = 0; m < ny; m++)
+        {
+          if (abs(i-k) <= 1 && abs(j-m) <= 1)
+          {
+            continue;
+          }
+          else
+          {
+            ClothParticle &p1 = getParticle(k,m);
+            if (abs((p1.getPosition() - p.getPosition()).Length()) <= collision_boundary)
+            {
+              printf("%f\n", abs((p1.getPosition() - p.getPosition()).Length()));
+              printf("Collide: %d %d <-> %d %d\n", i,j,k,m);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
