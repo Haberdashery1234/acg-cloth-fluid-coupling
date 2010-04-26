@@ -46,7 +46,7 @@ osx: all
 
 # ===============================================================
 
-SRCS	= main.cpp camera.cpp matrix.cpp glCanvas.cpp boundingbox.cpp cloth.cpp fluid.cpp marching_cubes.cpp edge.cpp
+SRCS	= main.cpp camera.cpp matrix.cpp glCanvas.cpp boundingbox.cpp cloth.cpp fluid.cpp marching_cubes.cpp
 OBJS	= $(SRCS:.cpp=.o)
 EXE	= simulation
 

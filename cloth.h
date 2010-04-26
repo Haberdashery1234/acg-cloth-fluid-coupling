@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <vector>
 #include "argparser.h"
-#include "edge.h"
 #include "boundingbox.h"
 
 // =====================================================================================
@@ -43,10 +42,6 @@ public:
     {
         return fixed;
     }
-    std::vector<Edge*> getEdges()
-    {
-      return edges;
-    }
     // MODIFIERS
     void setOriginalPosition(const Vec3f &p)
     {
@@ -72,11 +67,6 @@ public:
     {
         fixed = b;
     }
-    void addEdge(Edge *e)
-    {
-      assert(e!=NULL);
-      edges.push_back(e);
-    }
 
 private:
     // REPRESENTATION
@@ -84,7 +74,6 @@ private:
     Vec3f position;
     Vec3f velocity;
     Vec3f acceleration;
-    std::vector<Edge*> edges;
     float mass;
     bool fixed;
 };
@@ -111,27 +100,7 @@ public:
     // PAINTING & ANIMATING
     void Paint() const;
     void Animate();
-    void addEdgeToCloth(Edge *e)
-    {
-      assert(e!=NULL);
-      cloth_edges.push_back(e);
-      std::cout << "EDGE: " << e << " SV: " << e->getStartVertex() << " EV: " << e->getEndVertex() << "\n";
-      printf("(S)x:%f y:%f z:%f", e->getStartVertex().x(), e->getStartVertex().y(), e->getStartVertex().z());
-      printf("     (E)x:%f y:%f z:%f\n\n", e->getEndVertex().x(), e->getEndVertex().y(), e->getEndVertex().z());
-    }
-
-    void printEdges()
-    {
-      Edge *e;
-      for (unsigned int i = 0; i < cloth_edges.size(); i++)
-      {
-        e = cloth_edges[i];
-        std::cout << "EDGE: " << e << " SV: " << e->getStartVertex() << " EV: " << e->getEndVertex() << "\n";
-        printf("Edge %d/%d: ", i, cloth_edges.size());
-        printf("(S)x:%f y:%f z:%f", e->getStartVertex().x(), e->getStartVertex().y(), e->getStartVertex().z());
-      printf("     (E)x:%f y:%f z:%f\n\n", e->getEndVertex().x(), e->getEndVertex().y(), e->getEndVertex().z());
-      }
-    }
+    void CheckCollision();
 
 private:
 
@@ -143,7 +112,6 @@ private:
     }
     ClothParticle& getParticle(int i, int j)
     {
-        //assert (i >= 0 && i < nx && j >= 0 && j < ny);
         assert (i >= 0 && i < nx && j >= 0 && j < ny);
         return particles[i + j*nx];
     }
@@ -158,7 +126,6 @@ private:
     int nx, ny;
     ClothParticle *particles;
     BoundingBox box;
-    std::vector<Edge*> cloth_edges;
     // simulation parameters
     float damping;
     // spring constants
@@ -168,6 +135,7 @@ private:
     // correction thresholds
     float provot_structural_correction;
     float provot_shear_correction;
+    float collision_boundary;
 };
 
 #endif
