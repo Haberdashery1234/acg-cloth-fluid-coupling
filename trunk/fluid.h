@@ -58,6 +58,8 @@ private:
 
   // =================
   // ANIMATION HELPERS
+  void AddNewParticles();
+  void RemoveParticles();
   void ComputeNewVelocities();
   void SetBoundaryVelocities();
   void CopyVelocities();
@@ -126,6 +128,14 @@ private:
   bool compressible;
   float viscosity;
   float density; // average # of particles initialized in each "Full" cell
+  
+  bool source;
+  std::string sourcetype;
+  float sourcedensity;
+  float sourcevelocity;
+  
+  bool sink;
+  std::string sinktype;
 
   MarchingCubes *marchingCubes;  // to display an isosurface 
 };
