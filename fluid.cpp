@@ -93,6 +93,27 @@ void Fluid::Load() {
       }
     }
   }
+  // read in sources and sinks
+  istr >> token >> token2; assert (token =="source");
+  if (token2 == "none") {
+    source = false;
+  } else if (token2 == "spout" || token2 == "rain" || token2 == "fountain" || token2 == "pour") {
+    source = true;
+    istr >> sourcedensity;
+    istr >> sourcevelocity;
+    sourcetype = token2;
+  } else {
+    assert(0);
+  }
+  istr >> token >> token2; assert (token =="sink");
+  if (token2 == "none") {
+    sink = false;
+  } else if (token2 == "end" || token2 == "bottom") {
+    sink = true;
+    sinktype = token2;
+  } else {
+    assert(0);
+  }
   // read in custom velocities
   while(istr >> token) {
     int i,j,k;
@@ -129,7 +150,15 @@ bool Fluid::inShape(Vec3f &pos, const std::string &shape) {
     float length = (center-pos).Length();
     if (length < 0.8*h) return true;
     return false;
-  } else {
+  } else if (shape == "pool") {
+    // a shallow pool of particles on the bottom
+    float h = ny*dy/6.0;
+    if (pos.y() < 2*h) return true;
+    return false;
+  } else if (shape == "none") {
+    return false;
+  }
+  else {
     std::cout << "unknown shape: " << shape << std::endl;
     exit(0);
   }
@@ -185,6 +214,11 @@ void Fluid::GenerateParticles(const std::string &shape, const std::string &place
 void Fluid::Animate() {
 
   // the animation manager:  this is what gets done each timestep!
+  if (source)
+    AddNewParticles();
+  
+  if (sink)
+    RemoveParticles();
 
   ComputeNewVelocities();
   SetBoundaryVelocities();
@@ -205,6 +239,92 @@ void Fluid::Animate() {
   MoveParticles();
   ReassignParticles();
   SetEmptySurfaceFull();
+}
+
+// ==============================================================
+
+void Fluid::AddNewParticles() {
+  if (sourcetype == "rain")
+  {
+    for (int n = 0; n < nx*sourcedensity; n++) {
+      Vec3f pos = Vec3f(rand()/double(RAND_MAX)*nx*dx,
+                        ((rand()%(RAND_MAX/4))/double(RAND_MAX)+0.75)*ny*dy,
+                        rand()/double(RAND_MAX)*nz*dz);
+      Cell *cell = getCell(int(pos.x()/dx),int(pos.y()/dy),int(pos.z()/dz));
+      FluidParticle *p = new FluidParticle();
+      p->setPosition(pos);
+      cell->addParticle(p);
+    }
+  }
+  else if (sourcetype == "spout")
+  {
+    for (int n = 0; n < nx*ny*nz*sourcedensity; n++) {
+      Vec3f pos = Vec3f(rand()/double(RAND_MAX)*2*dx,
+                        ((rand()%(RAND_MAX/10))/double(RAND_MAX)+0.9)*ny*dy,
+                        rand()/double(RAND_MAX)*dz);
+      Cell *cell = getCell(int(pos.x()/dx),int(pos.y()/dy),int(pos.z()/dz));
+      FluidParticle *p = new FluidParticle();
+      p->setPosition(pos);
+      cell->addParticle(p);
+    }
+  }
+  else if (sourcetype == "pour")
+  {
+    for (int n = 0; n < nx*ny*nz*sourcedensity; n++) {
+      Vec3f pos = Vec3f(rand()/double(RAND_MAX)*2*dx+(dx*nx*0.5),
+                        ((rand()%(RAND_MAX/10))/double(RAND_MAX)+0.9)*ny*dy,
+                        rand()/double(RAND_MAX)*dz);
+      Cell *cell = getCell(int(pos.x()/dx),int(pos.y()/dy),int(pos.z()/dz));
+      FluidParticle *p = new FluidParticle();
+      p->setPosition(pos);
+      cell->addParticle(p);
+    }
+  }
+  else if (sourcetype == "fountain")
+  {
+    for (int n = 0; n < nx*ny*nz*sourcedensity; n++) {
+      Vec3f pos = Vec3f(rand()/double(RAND_MAX)*2*dx+(dx*nx*0.5),
+                        ((rand()%(RAND_MAX/10))/double(RAND_MAX))*ny*dy,
+                        rand()/double(RAND_MAX)*dz);
+      Cell *cell = getCell(int(pos.x()/dx),int(pos.y()/dy),int(pos.z()/dz));
+      FluidParticle *p = new FluidParticle();
+      p->setPosition(pos);
+      cell->addParticle(p);
+    }
+  }
+  else
+    assert(0);
+}
+
+// ==============================================================
+
+void Fluid::RemoveParticles() {
+  if (sinktype == "end")
+  {
+    for (int j = 0; j < ny; j++)
+    {
+      Cell *cell = getCell(nx-1, j, 0);
+      std::vector<FluidParticle*> p = cell->getParticles();
+      for (int i = 0; i < int(p.size()); i++)
+      {
+        cell->removeParticle(p[i]);
+      }
+    }
+  }
+  else if (sinktype == "bottom")
+  {
+    for (int j = 0; j < nx; j++)
+    {
+      Cell *cell = getCell(j, 0, 0);
+      std::vector<FluidParticle*> p = cell->getParticles();
+      for (int i = 0; i < int(p.size()); i++)
+      {
+        cell->removeParticle(p[i]);
+      }
+    }
+  }
+  else
+    assert(0);
 }
 
 // ==============================================================
@@ -269,6 +389,33 @@ void Fluid::ComputeNewVelocities() {
                 (viscosity/square(dz)) * (get_w_plus(i  ,j  ,k+1) - 2*get_w_plus(i,j,k) + get_w_plus(i  ,j  ,k-1)) );
         cell->set_new_w_plus(new_w_plus);
       }
+    }
+  }
+  
+  if (source)
+  {
+    if (sourcetype == "spout")
+    {
+      i = int((dy*ny*9)/10);
+      while (i < ny)
+      {
+        Cell *cell = getCell(0,i,0);
+        cell->adjust_new_u_plus(sourcevelocity);
+        i++;
+      }
+    }
+    else if (sourcetype == "fountain")
+    {
+      i = int(nx / 2);
+      i--;
+      Cell *cell = getCell(i,0,0);
+      cell->adjust_new_v_plus(sourcevelocity);
+      i++;
+      cell = getCell(i,0,0);
+      cell->adjust_new_v_plus(sourcevelocity);
+      i++;
+      cell = getCell(i,0,0);
+      cell->adjust_new_v_plus(sourcevelocity);
     }
   }
 }
@@ -487,6 +634,24 @@ float Fluid::AdjustForIncompressibility() {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k));
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k));
           }
+          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
+              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
+              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
+              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          {
+            float splitVelocity = (get_new_u_plus(i,j,k) + get_new_u_plus(i-1,j,k))/2;
+            set_new_v_plus(i,j,k,splitVelocity);
+            set_new_v_plus(i,j-1,k,splitVelocity);
+          }
+          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
+              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
+              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
+              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          {
+            float splitVelocity = (get_new_v_plus(i,j,k) + get_new_v_plus(i,j-1,k))/2;
+            set_new_u_plus(i,j,k,splitVelocity);
+            set_new_u_plus(i-1,j,k,splitVelocity);
+          }
           else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
               getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
               getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
@@ -528,10 +693,13 @@ float Fluid::AdjustForIncompressibility() {
               getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
               getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
           {
+            /*
             set_new_v_plus(i,j,k,0);
             set_new_v_plus(i,j-1,k,0);
             set_new_u_plus(i,j,k,0);
             set_new_u_plus(i-1,j,k,0);
+            */
+            //adjust_new_v_plus(i,j-1,k,args->gravity.y());
           }
           getCell(i,j,k)->setPressure(0);
         }
