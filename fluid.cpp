@@ -150,6 +150,13 @@ bool Fluid::inShape(Vec3f &pos, const std::string &shape) {
     float length = (center-pos).Length();
     if (length < 0.8*h) return true;
     return false;
+  } else if (shape == "droponly") {
+    // and a sphere of particles above
+    float h = ny*dy/6.0;
+    Vec3f center = Vec3f(nx*dx*0.5, 5*h,nz*dz*0.5);
+    float length = (center-pos).Length();
+    if (length < 0.8*h) return true;
+    return false;
   } else if (shape == "pool") {
     // a shallow pool of particles on the bottom
     float h = ny*dy/6.0;

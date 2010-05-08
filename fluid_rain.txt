@@ -1,12 +1,12 @@
 grid 20 12 1
-cell_dimensions 0.01 0.01 0.01
+cell_dimensions 1 1 1
 
 flow incompressible
 xy_boundary free_slip
 yz_boundary free_slip
 zx_boundary free_slip
 viscosity 0.001
-gravity 1
+gravity 10
 
 initial_particles none uniform
 density 8

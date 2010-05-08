@@ -607,8 +607,8 @@ void Cloth::CheckCollision()
             ClothParticle &p1 = getParticle(k,m);
             if (abs((p1.getPosition() - p.getPosition()).Length()) <= collision_boundary)
             {
-              printf("%f\n", abs((p1.getPosition() - p.getPosition()).Length()));
-              printf("Collide: %d %d <-> %d %d\n", i,j,k,m);
+              //printf("%f\n", abs((p1.getPosition() - p.getPosition()).Length()));
+              //printf("Collide: %d %d <-> %d %d\n", i,j,k,m);
             }
           }
         }
