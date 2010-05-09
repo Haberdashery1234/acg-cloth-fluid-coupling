@@ -620,7 +620,7 @@ void Cloth::Animate()
         }
     }
     CheckCollision();
-    AdjustCells();
+    if (fluid) AdjustCells();
     glEnd();
     glEnable(GL_LIGHTING);
 }
