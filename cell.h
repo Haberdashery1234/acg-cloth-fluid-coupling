@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <vector>
+#include "cloth.h"
 
 // ==============================================================================
 
@@ -50,6 +51,10 @@ public:
         {
             delete particles[i];
         }
+        for (unsigned int i = 0; i < cparticles.size(); i++)
+        {
+            delete cparticles[i];
+        }
     }
 
     // =========
@@ -93,6 +98,10 @@ public:
     std::vector<FluidParticle*>& getParticles()
     {
         return particles;
+    }
+    std::vector<ClothParticle*>& getClothParticles()
+    {
+        return cparticles;
     }
 
     // =========
@@ -168,6 +177,24 @@ public:
         }
         assert (0);
     }
+    void addClothParticle(ClothParticle *p)
+    {
+        assert(p != NULL);
+        cparticles.push_back(p);
+    }
+    void removeClothParticle(ClothParticle *p)
+    {
+        assert(p != NULL);
+        for (std::vector<ClothParticle*>::iterator i = cparticles.begin(); i != cparticles.end(); i++)
+        {
+            if (*i == p)
+            {
+                cparticles.erase(i);
+                return;
+            }
+        }
+        assert (0);
+    }
 
 private:
 
@@ -181,6 +208,7 @@ private:
     float new_u_plus,new_v_plus,new_w_plus;
 
     std::vector<FluidParticle*> particles;
+    std::vector<ClothParticle*> cparticles;
 };
 
 #endif

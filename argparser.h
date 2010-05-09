@@ -40,6 +40,15 @@ public:
                 assert (i < argc);
                 fluid_file = argv[i];
             }
+            else if (!strcmp(argv[i],"-both"))
+            {
+                i++;
+                assert (i < argc);
+                fluid_file = argv[i];
+                i++;
+                assert (i < argc);
+                cloth_file = argv[i];
+            }
             else if (!strcmp(argv[i],"-size"))
             {
                 i++;
