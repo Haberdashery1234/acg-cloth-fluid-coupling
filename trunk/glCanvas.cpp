@@ -38,10 +38,15 @@ void GLCanvas::Load()
     cloth = NULL;
     delete fluid;
     fluid = NULL;
-    if (args->cloth_file != "")
-        cloth = new Cloth(args);
     if (args->fluid_file != "")
         fluid = new Fluid(args);
+    if (args->cloth_file != "")
+    {
+        if (fluid)
+          cloth = new Cloth(args, fluid);
+        else
+          cloth = new Cloth(args);
+    }
 }
 
 // ========================================================

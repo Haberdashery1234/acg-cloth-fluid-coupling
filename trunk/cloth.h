@@ -5,6 +5,7 @@
 #include <vector>
 #include "argparser.h"
 #include "boundingbox.h"
+#include "fluid.h"
 
 // =====================================================================================
 // Cloth Particles
@@ -86,6 +87,7 @@ class Cloth
 {
 public:
     Cloth(ArgParser *args);
+    Cloth(ArgParser *args, Fluid *fluid);
     ~Cloth()
     {
         delete [] particles;
@@ -136,6 +138,8 @@ private:
     float provot_structural_correction;
     float provot_shear_correction;
     float collision_boundary;
+    
+    Fluid *fluid;
 };
 
 #endif

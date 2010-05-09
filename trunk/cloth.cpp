@@ -31,6 +31,7 @@ void CheckCollision(ClothParticle &p1, ClothParticle &p2);
 Cloth::Cloth(ArgParser *_args)
 {
   args =_args;
+  fluid = NULL;
 
   // open the file
   ifstream istr(args->cloth_file.c_str());
@@ -99,6 +100,101 @@ Cloth::Cloth(ArgParser *_args)
       p.setFixed(false);
     }
   }
+  
+  
+
+  // the fixed particles
+  while (istr >> token)
+  {
+    assert (token == "f");
+    int i,j;
+    float x,y,z;
+    istr >> i >> j >> x >> y >> z;
+    ClothParticle &p = getParticle(i,j);
+    p.setPosition(Vec3f(x,y,z));
+    p.setFixed(true);
+  }
+
+  computeBoundingBox();
+  
+  collision_boundary = box.maxDim()/(2*max2(nx,ny));
+  collision_boundary *= 1.1;
+}
+
+Cloth::Cloth(ArgParser *_args, Fluid *_fluid)
+{
+  args =_args;
+  fluid = _fluid;
+
+  // open the file
+  ifstream istr(args->cloth_file.c_str());
+  assert (istr != NULL);
+  string token;
+
+  // read in the simulation parameters
+  istr >> token >> k_structural;
+  assert (token == "k_structural");  // (units == N/m)  (N = kg*m/s^2)
+  istr >> token >> k_shear;
+  assert (token == "k_shear");
+  istr >> token >> k_bend;
+  assert (token == "k_bend");
+  istr >> token >> damping;
+  assert (token == "damping");
+  // istr >> token >> normal;
+  // assert (token == "normal");
+  // NOTE: correction factor == .1, means springs shouldn't stretch more than 10%
+  //       correction factor == 100, means don't do any correction
+  istr >> token >> provot_structural_correction;
+  assert (token == "provot_structural_correction");
+  istr >> token >> provot_shear_correction;
+  assert (token == "provot_shear_correction");
+
+  // the cloth dimensions
+  istr >> token >> nx >> ny; // (units == meters)
+  assert (token == "m");
+  assert (nx >= 2 && ny >= 2);
+
+  // the corners of the cloth
+  Vec3f a,b,c,d;
+  istr >> token >> a;
+  assert (token == "p");
+  istr >> token >> b;
+  assert (token == "p");
+  istr >> token >> c;
+  assert (token == "p");
+  istr >> token >> d;
+  assert (token == "p");
+
+  // fabric weight  (units == kg/m^2)
+  // denim ~300 g/m^2
+  // silk ~70 g/m^2
+  float fabric_weight;
+  istr >> token >> fabric_weight;
+  assert (token == "fabric_weight");
+  float area = AreaOfTriangle(a,b,c) + AreaOfTriangle(a,c,d);
+
+  // create the particles
+  particles = new ClothParticle[nx*ny];
+  float mass = area*fabric_weight / float(nx*ny);
+  for (int i = 0; i < nx; i++)
+  {
+    float x = i/float(nx-1);
+    Vec3f ab = (1-x)*a + x*b;
+    Vec3f dc = (1-x)*d + x*c;
+    for (int j = 0; j < ny; j++)
+    {
+      float y = j/float(ny-1);
+      ClothParticle &p = getParticle(i,j);
+      Vec3f abdc = (1-y)*ab + y*dc;
+      p.setOriginalPosition(abdc);
+      p.setPosition(abdc);
+      p.setVelocity(Vec3f(0,0,0));
+      p.setMass(mass);
+      p.setFixed(false);
+    }
+  }
+  
+  
 
   // the fixed particles
   while (istr >> token)
