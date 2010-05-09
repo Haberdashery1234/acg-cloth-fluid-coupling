@@ -1,5 +1,5 @@
 grid 20 12 1
-cell_dimensions 0.01 0.01 0.01
+cell_dimensions 1 1 1
 
 flow incompressible
 xy_boundary free_slip
