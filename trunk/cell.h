@@ -51,10 +51,6 @@ public:
         {
             delete particles[i];
         }
-        for (unsigned int i = 0; i < cparticles.size(); i++)
-        {
-            delete cparticles[i];
-        }
     }
 
     // =========
