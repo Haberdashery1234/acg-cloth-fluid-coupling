@@ -43,9 +43,7 @@ public:
   void Paint() const; 
   BoundingBox getBoundingBox() const {
     return BoundingBox(Vec3f(0,0,0),Vec3f(nx*dx,ny*dy,nz*dz)); }
-
-private:
-
+    
   // ==============
   // CELL ACCESSORS
   int Index(int i, int j, int k) const {
@@ -55,6 +53,17 @@ private:
     return (i+1)*(ny+2)*(nz+2) + (j+1)*(nz+2) + (k+1);
   }
   Cell* getCell(int i, int j, int k) const { return &cells[Index(i,j,k)]; }
+    
+  // ===============
+  // OTHER ACCESSORS 
+  float getNX() { return nx; }
+  float getNY() { return ny; }
+  float getNZ() { return nz; }
+  float getDX() { return dx; }
+  float getDY() { return dy; }
+  float getDZ() { return dz; }
+
+private:
 
   // =================
   // ANIMATION HELPERS
