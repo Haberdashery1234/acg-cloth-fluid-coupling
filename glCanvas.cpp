@@ -249,8 +249,8 @@ void GLCanvas::keyboard(unsigned char key, int x, int y)
         break;
     case ' ':
         // a single step of animation
-        if (cloth) cloth->Animate();
         if (fluid) fluid->Animate();
+        if (cloth) cloth->Animate();
         Render();
         break;
     case 'm':
@@ -353,8 +353,8 @@ void GLCanvas::idle()
         // do 10 steps of animation before rendering
         for (int i = 0; i < 10; i++)
         {
-            if (cloth) cloth->Animate();
             if (fluid) fluid->Animate();
+            if (cloth) cloth->Animate();
         }
         Render();
     }
