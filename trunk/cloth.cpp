@@ -619,7 +619,7 @@ void Cloth::Animate()
             }
         }
     }
-    CheckCollision();
+    if (!strcmp(args->collision, "both"))CheckCollision();
     if (fluid) AdjustCells();
     glEnd();
     glEnable(GL_LIGHTING);
@@ -725,29 +725,71 @@ void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)
 
 void Cloth::CheckCollision()
 {
-  for (int i = 0; i < nx; i++)
+  for (int i = 0; i < fluid->getNX(); i++)
   {
-    for (int j = 0; j < ny; j++)
+    for (int j = 0; j < fluid->getNY(); j++)
     {
-      ClothParticle &p = getParticle(i,j);
-      for (int k = 0; k < nx; k++)
+      for (int k = 0; k < fluid->getNZ(); k++)
       {
-        for (int m = 0; m < ny; m++)
+        std::vector<Cell*> cells;
+        // back 9 voxels
+        cells.push_back(fluid->getCell(i-1,j-1,k-1));
+        cells.push_back(fluid->getCell(i-1,j,k-1));
+        cells.push_back(fluid->getCell(i-1,j+1,k-1));
+       
+        cells.push_back(fluid->getCell(i,j-1,k-1));
+        cells.push_back(fluid->getCell(i,j,k-1));
+        cells.push_back(fluid->getCell(i,j+1,k-1));
+        
+        cells.push_back(fluid->getCell(i+1,j-1,k-1));
+        cells.push_back(fluid->getCell(i+1,j,k-1));
+        cells.push_back(fluid->getCell(i+1,j+1,k-1));
+        // middle 9 voxels
+        cells.push_back(fluid->getCell(i-1,j-1,k));
+        cells.push_back(fluid->getCell(i-1,j,k));
+        cells.push_back(fluid->getCell(i-1,j+1,k));
+       
+        cells.push_back(fluid->getCell(i,j-1,k));
+        cells.push_back(fluid->getCell(i,j+1,k));
+        
+        cells.push_back(fluid->getCell(i+1,j-1,k));
+        cells.push_back(fluid->getCell(i+1,j,k));
+        cells.push_back(fluid->getCell(i+1,j+1,k));
+        // front 9 voxels
+        cells.push_back(fluid->getCell(i-1,j-1,k));
+        cells.push_back(fluid->getCell(i-1,j,k));
+        cells.push_back(fluid->getCell(i-1,j+1,k));
+       
+        cells.push_back(fluid->getCell(i,j-1,k));
+        cells.push_back(fluid->getCell(i,j,k));
+        cells.push_back(fluid->getCell(i,j+1,k));
+        
+        cells.push_back(fluid->getCell(i+1,j-1,k));
+        cells.push_back(fluid->getCell(i+1,j,k));
+        cells.push_back(fluid->getCell(i+1,j+1,k));
+        Cell *currentcell = fluid->getCell(i,j,k);
+        
+        std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
+        for (unsigned int q = 0; q < pvec.size(); q++)
         {
-          if (abs(i-k) <= 1 && abs(j-m) <= 1)
+          ClothParticle *p = pvec[q];
+          Vec3f pos = p->getPosition();
+          for (unsigned int c = 0; c < cells.size(); c++)
           {
-            continue;
-          }
-          else
-          {
-            ClothParticle &p1 = getParticle(k,m);
-            if (abs((p1.getPosition() - p.getPosition()).Length()) <= collision_boundary)
+            std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
+            for (unsigned int cp = 0; cp < pvec2.size(); cp++)
             {
-              //printf("%f\n", abs((p1.getPosition() - p.getPosition()).Length()));
-              //printf("Collide: %d %d <-> %d %d\n", i,j,k,m);
+              ClothParticle *p1 = pvec2[cp];
+              Vec3f pos2 = p1->getPosition();
+              if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
+              {
+                p1->setVelocity(Vec3f(0,0,0));
+                p->setVelocity(Vec3f(0,0,0));
+              }
             }
           }
         }
+        cells.clear();
       }
     }
   }

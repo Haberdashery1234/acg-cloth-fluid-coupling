@@ -115,7 +115,7 @@ public:
 
     std::string cloth_file;
     std::string fluid_file;
-    std::string collision;
+    char* collision;
     int width;
     int height;
 
