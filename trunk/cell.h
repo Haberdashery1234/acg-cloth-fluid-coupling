@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include <vector>
-#include "cloth.h"
+#include "clothparticle.h"
 
 // ==============================================================================
 
