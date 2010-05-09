@@ -62,6 +62,13 @@ public:
                 timestep = atof(argv[i]);
                 assert (timestep > 0);
             }
+            else if (!strcmp(argv[i],"-collision"))
+            {
+                i++;
+                assert (i < argc);
+                collision = argv[i];
+                assert (strcmp(collision, "fluid") || strcmp(collision, "both"));
+            }
             else
             {
                 printf ("whoops error with command line argument %d: '%s'\n",i,argv[i]);
@@ -75,6 +82,7 @@ public:
 
     void DefaultValues()
     {
+        collision = "none";
         width = 500;
         height = 500;
 
@@ -107,6 +115,7 @@ public:
 
     std::string cloth_file;
     std::string fluid_file;
+    std::string collision;
     int width;
     int height;
 
