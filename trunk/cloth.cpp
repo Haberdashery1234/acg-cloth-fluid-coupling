@@ -210,6 +210,18 @@ Cloth::Cloth(ArgParser *_args, Fluid *_fluid)
 
   computeBoundingBox();
   
+  // assign cloth particles to the proper cells in the voxel grid
+  for (int i = 0; i < nx; i++)
+  {
+    for (int j = 0; j < ny; j++)
+    {
+      ClothParticle &p = getParticle(i,j);
+      Vec3f pos = p.getPosition();
+      Cell *cell = fluid->getCell(int(pos.x()/fluid->getDX()),int(pos.y()/fluid->getDY()),int(pos.z()/fluid->getDZ()));
+      cell->addClothParticle(&p);
+    }
+  }
+  
   collision_boundary = box.maxDim()/(2*max2(nx,ny));
   collision_boundary *= 1.1;
 }
@@ -608,8 +620,36 @@ void Cloth::Animate()
         }
     }
     CheckCollision();
+    AdjustCells();
     glEnd();
     glEnable(GL_LIGHTING);
+}
+
+// puts each cloth particle into its proper cell if it has been moved out of its old one.
+void Cloth::AdjustCells()
+{
+  for (int i = 0; i < fluid->getNX(); i++)
+  {
+    for (int j = 0; j < fluid->getNY(); j++)
+    {
+      for (int k = 0; k < fluid->getNZ(); k++)
+      {
+        Cell *currentcell = fluid->getCell(i,j,k);
+        std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
+        for (unsigned int q = 0; q < pvec.size(); q++)
+        {
+          ClothParticle *p = pvec[q];
+          Vec3f pos = p->getPosition();
+          Cell *cell = fluid->getCell(int(pos.x()/fluid->getDX()),int(pos.y()/fluid->getDY()),int(pos.z()/fluid->getDZ()));
+          if (cell != currentcell)
+          {
+            currentcell->removeClothParticle(p);
+            cell->addClothParticle(p);
+          }
+        }
+      }
+    }
+  }
 }
 
 void Cloth::makeCorrection(ClothParticle &p1, ClothParticle &p2, float corr)

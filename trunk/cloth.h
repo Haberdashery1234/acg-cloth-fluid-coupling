@@ -7,6 +7,7 @@
 #include "boundingbox.h"
 #include "fluid.h"
 #include "clothparticle.h"
+#include "cell.h"
 
 // =====================================================================================
 // Cloth System
@@ -32,6 +33,7 @@ public:
     void Paint() const;
     void Animate();
     void CheckCollision();
+    void AdjustCells();
 
 private:
 
