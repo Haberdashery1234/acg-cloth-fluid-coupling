@@ -428,7 +428,7 @@ glCanvas.o: glCanvas.cpp glCanvas.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_vector.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_bvector.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/vector.tcc \
-  boundingbox.h utils.h fluid.h cell.h matrix.h
+  boundingbox.h utils.h fluid.h cell.h clothparticle.h matrix.h
 boundingbox.o: boundingbox.cpp boundingbox.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/cassert \
   /usr/include/assert.h /usr/include/_ansi.h /usr/include/newlib.h \
@@ -649,7 +649,8 @@ cloth.o: cloth.cpp boundingbox.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_vector.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_bvector.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/vector.tcc \
-  argparser.h /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/fstream \
+  argparser.h fluid.h cell.h clothparticle.h \
+  /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/fstream \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/i686-pc-cygwin/bits/basic_file.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/fstream.tcc
 fluid.o: fluid.cpp fluid.h \
@@ -764,8 +765,9 @@ fluid.o: fluid.cpp fluid.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/vector \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_vector.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/stl_bvector.h \
-  /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/vector.tcc matrix.h \
-  marching_cubes.h /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/fstream \
+  /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/vector.tcc \
+  clothparticle.h matrix.h marching_cubes.h \
+  /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/fstream \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/i686-pc-cygwin/bits/basic_file.h \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/bits/fstream.tcc \
   /usr/lib/gcc/i686-pc-cygwin/3.4.4/include/c++/iomanip \

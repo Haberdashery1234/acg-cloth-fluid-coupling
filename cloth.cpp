@@ -619,8 +619,8 @@ void Cloth::Animate()
             }
         }
     }
-    if (!strcmp(args->collision, "both"))CheckCollision();
     if (fluid) AdjustCells();
+    if (!strcmp(args->collision, "both"))CheckCollision();
     glEnd();
     glEnable(GL_LIGHTING);
 }
@@ -731,42 +731,67 @@ void Cloth::CheckCollision()
     {
       for (int k = 0; k < fluid->getNZ(); k++)
       {
+        std::cout << i << " " << j << " " << k << "\n";
         std::vector<Cell*> cells;
-        // back 9 voxels
-        cells.push_back(fluid->getCell(i-1,j-1,k-1));
-        cells.push_back(fluid->getCell(i-1,j,k-1));
-        cells.push_back(fluid->getCell(i-1,j+1,k-1));
-       
-        cells.push_back(fluid->getCell(i,j-1,k-1));
-        cells.push_back(fluid->getCell(i,j,k-1));
-        cells.push_back(fluid->getCell(i,j+1,k-1));
-        
-        cells.push_back(fluid->getCell(i+1,j-1,k-1));
-        cells.push_back(fluid->getCell(i+1,j,k-1));
-        cells.push_back(fluid->getCell(i+1,j+1,k-1));
-        // middle 9 voxels
-        cells.push_back(fluid->getCell(i-1,j-1,k));
-        cells.push_back(fluid->getCell(i-1,j,k));
-        cells.push_back(fluid->getCell(i-1,j+1,k));
-       
-        cells.push_back(fluid->getCell(i,j-1,k));
-        cells.push_back(fluid->getCell(i,j+1,k));
-        
-        cells.push_back(fluid->getCell(i+1,j-1,k));
-        cells.push_back(fluid->getCell(i+1,j,k));
-        cells.push_back(fluid->getCell(i+1,j+1,k));
-        // front 9 voxels
-        cells.push_back(fluid->getCell(i-1,j-1,k));
-        cells.push_back(fluid->getCell(i-1,j,k));
-        cells.push_back(fluid->getCell(i-1,j+1,k));
-       
-        cells.push_back(fluid->getCell(i,j-1,k));
-        cells.push_back(fluid->getCell(i,j,k));
-        cells.push_back(fluid->getCell(i,j+1,k));
-        
-        cells.push_back(fluid->getCell(i+1,j-1,k));
-        cells.push_back(fluid->getCell(i+1,j,k));
-        cells.push_back(fluid->getCell(i+1,j+1,k));
+        if (i > 0)
+        {
+          if (j > 0)
+          {
+            if (k > 0)  cells.push_back(fluid->getCell(i-1,j-1,k-1));          
+            cells.push_back(fluid->getCell(i-1,j-1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i-1,j-1,k+1));
+          }
+          
+          if (k > 0)  cells.push_back(fluid->getCell(i-1,j,k-1));
+          cells.push_back(fluid->getCell(i-1,j,k));
+          if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i-1,j,k+1));
+          
+          if (j < fluid->getNY()-1)
+          {
+            if (k > 0)  cells.push_back(fluid->getCell(i-1,j+1,k-1));
+            cells.push_back(fluid->getCell(i-1,j+1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i-1,j+1,k+1));
+          }
+        }
+        else if (i < fluid->getNX()-1)
+        {
+          if (j > 0)
+          {
+            if (k > 0)  cells.push_back(fluid->getCell(i+1,j-1,k-1));
+            cells.push_back(fluid->getCell(i+1,j-1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i+1,j-1,k+1));
+          }
+          
+          if (k > 0)  cells.push_back(fluid->getCell(i+1,j,k-1));
+          cells.push_back(fluid->getCell(i+1,j,k));
+          if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i+1,j,k+1));
+          
+          if (j < fluid->getNY()-1)
+          { 
+            if (k > 0)  cells.push_back(fluid->getCell(i+1,j+1,k-1));
+            cells.push_back(fluid->getCell(i+1,j+1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i+1,j+1,k+1));
+          }
+        }
+        else
+        {
+          if (j > 0)
+          {
+            if (k > 0)  cells.push_back(fluid->getCell(i,j-1,k-1)); 
+            cells.push_back(fluid->getCell(i,j-1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i,j-1,k+1));
+          }
+          
+          if (j < fluid->getNY()-1)
+          {
+            if (k > 0)  cells.push_back(fluid->getCell(i,j+1,k-1));
+            cells.push_back(fluid->getCell(i,j+1,k));
+            if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i,j+1,k+1)); 
+          }
+          
+          if (k > 0)  cells.push_back(fluid->getCell(i,j,k-1));
+          if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i,j,k+1));
+        }
         Cell *currentcell = fluid->getCell(i,j,k);
         
         std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
