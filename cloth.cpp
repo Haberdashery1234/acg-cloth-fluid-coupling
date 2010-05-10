@@ -15,6 +15,7 @@
 #include "argparser.h"
 #include <fstream>
 #include "vectors.h"
+#include <iostream>
 
 using namespace std;
 
@@ -224,6 +225,7 @@ Cloth::Cloth(ArgParser *_args, Fluid *_fluid)
   
   collision_boundary = box.maxDim()/(2*max2(nx,ny));
   collision_boundary *= 1.1;
+  std::cout << collision_boundary << "\n";
 }
 
 // ================================================================================
@@ -620,7 +622,8 @@ void Cloth::Animate()
         }
     }
     if (fluid) AdjustCells();
-    if (!strcmp(args->collision, "both"))CheckCollision();
+    if (!strcmp(args->collision, "both") || !strcmp(args->collision, "cloth"))CheckCollision();
+    if (fluid) AdjustCells();
     glEnd();
     glEnable(GL_LIGHTING);
 }
@@ -731,7 +734,6 @@ void Cloth::CheckCollision()
     {
       for (int k = 0; k < fluid->getNZ(); k++)
       {
-        std::cout << i << " " << j << " " << k << "\n";
         std::vector<Cell*> cells;
         if (i > 0)
         {
@@ -795,22 +797,33 @@ void Cloth::CheckCollision()
         Cell *currentcell = fluid->getCell(i,j,k);
         
         std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
-        for (unsigned int q = 0; q < pvec.size(); q++)
+        for (int q = 0; q < pvec.size(); q++)
         {
           ClothParticle *p = pvec[q];
-          Vec3f pos = p->getPosition();
-          for (unsigned int c = 0; c < cells.size(); c++)
+          for (int c = 0; c < cells.size(); c++)
           {
             std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
-            for (unsigned int cp = 0; cp < pvec2.size(); cp++)
+            for (int cp = 0; cp < pvec2.size(); cp++)
             {
               ClothParticle *p1 = pvec2[cp];
-              Vec3f pos2 = p1->getPosition();
               if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
               {
-                p1->setVelocity(Vec3f(0,0,0));
-                p->setVelocity(Vec3f(0,0,0));
+                Vec3f temp = p1->getVelocity();
+                p1->setVelocity(p->getVelocity());
+                p->setVelocity(temp);
               }
+            }
+          }
+          for (int c1 = 0; c1 < pvec.size(); c1++)
+          {
+            ClothParticle *p1 = pvec[c1];
+            if (q == c1)
+              continue;
+            if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
+            {
+              Vec3f temp = p1->getVelocity();
+              p1->setVelocity(p->getVelocity());
+              p->setVelocity(temp);
             }
           }
         }
