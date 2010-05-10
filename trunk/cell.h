@@ -15,14 +15,23 @@ public:
     {
         return position;
     }
+    Vec3f getVelocity() const
+    {
+        return velocity;
+    }
     // modifer
     void setPosition(Vec3f p)
     {
         position = p;
     }
+    void setVelocity(Vec3f v)
+    {
+        velocity = v;
+    }
 private:
     // representation
     Vec3f position;
+    Vec3f velocity;
 };
 
 // ==============================================================================
