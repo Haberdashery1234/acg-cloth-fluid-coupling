@@ -298,6 +298,11 @@ void GLCanvas::keyboard(unsigned char key, int x, int y)
         args->cubes = !args->cubes;
         Render();
         break;
+    case 'x':
+    case 'X':
+        args->voxels = !args->voxels;
+        Render();
+        break;
     case 'p':
     case 'P':
         args->pressure = !args->pressure;

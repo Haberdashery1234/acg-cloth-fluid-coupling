@@ -22,6 +22,7 @@
 #define EPSILON 0.0001
 
 void CubePaint();
+void ClearCubePaint();
 
 // ==============================================================
 // ==============================================================
@@ -1365,6 +1366,26 @@ void Fluid::Paint() const {
     }
   }
   
+  if (args->voxels) {
+    for (int i = 0; i < nx; i++) {
+      for (int j = 0; j < ny; j++) {
+        for (int k = 0; k < nz; k++) {
+          glPushMatrix();
+          Matrix m;
+          m.SetToIdentity();
+          m *= Matrix::MakeTranslation(Vec3f((i+0.1)*dx,(j+0.1)*dy,(k+0.1)*dz));
+          m *= Matrix::MakeScale(0.8);
+          m *= Matrix::MakeScale(Vec3f(dx,dy,dz));
+          glMultMatrixf(m.glGet());
+          Cell *cell = getCell(i,j,k);
+          glColor3f(0,0,0);
+          ClearCubePaint(); 
+          glPopMatrix();
+        } 
+      }
+    }
+  }
+  
   // =====================================================================================
   // render a visualization of the pressure
   // =====================================================================================
@@ -1495,3 +1516,52 @@ void CubePaint() {
 }
 
 // ==============================================================
+
+void ClearCubePaint() {
+
+  glBegin (GL_LINES);
+
+  // front 
+  glNormal3f(0,0,1.0);
+  glVertex3f(0.0,0.0,1.0);
+  glVertex3f(1.0,0.0,1.0);
+  glVertex3f(1.0,1.0,1.0);
+  glVertex3f(0.0,1.0,1.0);
+
+  // top 
+  glNormal3f(0,1.0,0);
+  glVertex3f(0.0,1.0,0.0);
+  glVertex3f(0.0,1.0,1.0);
+  glVertex3f(1.0,1.0,1.0);
+  glVertex3f(1.0,1.0,0.0);
+
+  // right
+  glNormal3f(1.0,0,0);
+  glVertex3f(1.0,0.0,0.0);
+  glVertex3f(1.0,1.0,0.0);
+  glVertex3f(1.0,1.0,1.0);
+  glVertex3f(1.0,0.0,1.0);
+
+  // back 
+  glNormal3f(0,0,-1.0);
+  glVertex3f(0.0,0.0,0.0);
+  glVertex3f(0.0,1.0,0.0);
+  glVertex3f(1.0,1.0,0.0);
+  glVertex3f(1.0,0.0,0.0);
+
+  // bottom
+  glNormal3f(0,-1.0,0);
+  glVertex3f(0.0,0.0,0.0);
+  glVertex3f(1.0,0.0,0.0);
+  glVertex3f(1.0,0.0,1.0);
+  glVertex3f(0.0,0.0,1.0);
+
+  // left 
+  glNormal3f(-1.0,0,0);
+  glVertex3f(0.0,0.0,0.0);
+  glVertex3f(0.0,0.0,1.0);
+  glVertex3f(0.0,1.0,1.0);
+  glVertex3f(0.0,1.0,0.0);
+
+  glEnd();
+}

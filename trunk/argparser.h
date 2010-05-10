@@ -104,6 +104,7 @@ public:
         cubes = false;
         pressure = false;
         updraft = false;
+        voxels = false;
 
         gravity = Vec3f(0,-9.8,0);
     }
@@ -142,6 +143,7 @@ public:
     float isosurface;
     bool cubes;
     bool pressure;
+    bool voxels;
 };
 
 #endif
