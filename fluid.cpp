@@ -498,15 +498,15 @@ void Fluid::CopyVelocities() {
   for (int i = 0; i < nx; i++) {
     for (int j = 0; j < ny; j++) {
       for (int k = 0; k < nz; k++) {
-	Cell *c = getCell(i,j,k);
-	c->copyVelocity();
-	if (fabs(c->get_u_plus()) > 0.5*dx/dt ||
-	    fabs(c->get_v_plus()) > 0.5*dy/dt ||
-	    fabs(c->get_w_plus()) > 0.5*dz/dt) {
-	  // velocity has exceeded reasonable threshhold
-	  std::cout << "velocity has exceeded reasonable threshhold, stopping animation" << std::endl;
-	  args->animate=false;
-	}
+        Cell *c = getCell(i,j,k);
+        c->copyVelocity();
+        if (fabs(c->get_u_plus()) > 0.5*dx/dt ||
+            fabs(c->get_v_plus()) > 0.5*dy/dt ||
+            fabs(c->get_w_plus()) > 0.5*dz/dt) {
+          // velocity has exceeded reasonable threshhold
+          std::cout << "velocity has exceeded reasonable threshhold, stopping animation" << std::endl;
+          args->animate=false;
+        }
       }
     }
   }
@@ -1167,22 +1167,28 @@ void Fluid::Paint() const {
   // =====================================================================================
   // render the particles
   // =====================================================================================
-  if (args->particles) {
+  if (args->particles) 
+  {
     glDisable(GL_LIGHTING);
     glColor3f(0,0,0);
     glPointSize(3);
     glBegin(GL_POINTS);
-    for (int x = 0; x < nx; x++) {
-      for (int y = 0; y < ny; y++) {
-	for (int z = 0; z < nz; z++) {
-	  Cell *cell = getCell(x,y,z);
-	  std::vector<FluidParticle*> &particles = cell->getParticles();
-          for (unsigned int iter = 0; iter < particles.size(); iter++) {
+    glColor3f(0,0,.7);
+    for (int x = 0; x < nx; x++) 
+    {
+      for (int y = 0; y < ny; y++) 
+      {
+        for (int z = 0; z < nz; z++) 
+        {
+          Cell *cell = getCell(x,y,z);
+          std::vector<FluidParticle*> &particles = cell->getParticles();
+          for (unsigned int iter = 0; iter < particles.size(); iter++) 
+          {
             FluidParticle *p = particles[iter];
-	    Vec3f v = p->getPosition();
-	    glVertex3f(v.x(),v.y(),v.z());
-	  }
-  	} 
+            Vec3f v = p->getPosition();
+            glVertex3f(v.x(),v.y(),v.z());
+          }
+        } 
       }
     }
     glEnd();

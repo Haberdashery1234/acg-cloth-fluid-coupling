@@ -1,4 +1,4 @@
-grid 10 10 10  
+grid 10 10 10
 
 cell_dimensions 1 1 1
 
