@@ -795,17 +795,31 @@ void Cloth::CheckCollision()
           if (k < fluid->getNZ()-1) cells.push_back(fluid->getCell(i,j,k+1));
         }
         Cell *currentcell = fluid->getCell(i,j,k);
-        
-        std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
-        for (int q = 0; q < pvec.size(); q++)
+        if (!strcmp(args->collision, "cloth"))
         {
-          ClothParticle *p = pvec[q];
-          for (int c = 0; c < cells.size(); c++)
+          std::vector<ClothParticle*> pvec = currentcell->getClothParticles();
+          for (int q = 0; q < pvec.size(); q++)
           {
-            std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
-            for (int cp = 0; cp < pvec2.size(); cp++)
+            ClothParticle *p = pvec[q];
+            for (int c = 0; c < cells.size(); c++)
             {
-              ClothParticle *p1 = pvec2[cp];
+              std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
+              for (int cp = 0; cp < pvec2.size(); cp++)
+              {
+                ClothParticle *p1 = pvec2[cp];
+                if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
+                {
+                  Vec3f temp = p1->getVelocity();
+                  p1->setVelocity(p->getVelocity());
+                  p->setVelocity(temp);
+                }
+              }
+            }
+            for (int c1 = 0; c1 < pvec.size(); c1++)
+            {
+              ClothParticle *p1 = pvec[c1];
+              if (q == c1)
+                continue;
               if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
               {
                 Vec3f temp = p1->getVelocity();
@@ -814,20 +828,34 @@ void Cloth::CheckCollision()
               }
             }
           }
-          for (int c1 = 0; c1 < pvec.size(); c1++)
+          cells.clear();
+        }
+        else if (!strcmp(args->collision, "both"))
+        {
+          cells.push_back(currentcell);
+          std::vector<FluidParticle*> pvec = currentcell->getParticles();
+          for (int q = 0; q < pvec.size(); q++)
           {
-            ClothParticle *p1 = pvec[c1];
-            if (q == c1)
-              continue;
-            if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
+            FluidParticle *p = pvec[q];
+            Cell *currCell = fluid->getCell(int(p->getPosition().x()/fluid->getDX()), int(p->getPosition().y()/fluid->getDY()), int(p->getPosition().z()/fluid->getDZ()));
+            for (int c = 0; c < cells.size(); c++)
             {
-              Vec3f temp = p1->getVelocity();
-              p1->setVelocity(p->getVelocity());
-              p->setVelocity(temp);
+              std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
+              for (int cp = 0; cp < pvec2.size(); cp++)
+              {
+                ClothParticle *p1 = pvec2[cp];
+                if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
+                {
+                  std::cout << "fluid-cloth collision\n";
+                  // Vec3f temp = p1->getVelocity();
+                  // p1->setVelocity(p->getVelocity());
+                  // p->setVelocity(temp);
+                }
+              }
             }
           }
+          cells.clear();
         }
-        cells.clear();
       }
     }
   }
