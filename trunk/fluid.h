@@ -62,6 +62,8 @@ public:
   float getDX() { return dx; }
   float getDY() { return dy; }
   float getDZ() { return dz; }
+  
+  float getMass() { return mass; }
 
 private:
 
@@ -137,6 +139,7 @@ private:
   bool compressible;
   float viscosity;
   float density; // average # of particles initialized in each "Full" cell
+  float mass;
   
   bool source;
   std::string sourcetype;

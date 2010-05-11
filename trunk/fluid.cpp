@@ -94,6 +94,9 @@ void Fluid::Load() {
       }
     }
   }
+  
+  istr >> token >> mass;  assert (token=="mass");
+  
   // read in sources and sinks
   istr >> token >> token2; assert (token =="source");
   if (token2 == "none") {
@@ -358,6 +361,11 @@ void Fluid::ComputeNewVelocities() {
                 (viscosity/square(dy)) * (get_u_plus(i  ,j+1,k  ) - 2*get_u_plus(i,j,k) + get_u_plus(i  ,j-1,k  )) +
                 (viscosity/square(dz)) * (get_u_plus(i  ,j  ,k+1) - 2*get_u_plus(i,j,k) + get_u_plus(i  ,j  ,k-1)) );
         cell->set_new_u_plus(new_u_plus);
+        std::vector<FluidParticle*> fparts = cell->getParticles();
+        for (unsigned int f = 0; f < fparts.size(); f++)
+        {
+          fparts.at(f)->set_u_vel(new_u_plus);
+        }
       }
     }
   }
@@ -377,6 +385,11 @@ void Fluid::ComputeNewVelocities() {
                 (viscosity/square(dy)) * (get_v_plus(i  ,j+1,k  ) - 2*get_v_plus(i,j,k) + get_v_plus(i  ,j-1,k  )) +
                 (viscosity/square(dz)) * (get_v_plus(i  ,j  ,k+1) - 2*get_v_plus(i,j,k) + get_v_plus(i  ,j  ,k-1)) );
         cell->set_new_v_plus(new_v_plus);
+        std::vector<FluidParticle*> fparts = cell->getParticles();
+        for (unsigned int f = 0; f < fparts.size(); f++)
+        {
+          fparts.at(f)->set_v_vel(new_v_plus);
+        }
       }
     }
   }
@@ -396,6 +409,11 @@ void Fluid::ComputeNewVelocities() {
                 (viscosity/square(dy)) * (get_w_plus(i  ,j+1,k  ) - 2*get_w_plus(i,j,k) + get_w_plus(i  ,j-1,k  )) +
                 (viscosity/square(dz)) * (get_w_plus(i  ,j  ,k+1) - 2*get_w_plus(i,j,k) + get_w_plus(i  ,j  ,k-1)) );
         cell->set_new_w_plus(new_w_plus);
+        std::vector<FluidParticle*> fparts = cell->getParticles();
+        for (unsigned int f = 0; f < fparts.size(); f++)
+        {
+          fparts.at(f)->set_w_vel(new_w_plus);
+        }
       }
     }
   }
@@ -563,6 +581,11 @@ float Fluid::AdjustForIncompressibility() {
     {
       for (int k = 0; k < nz; k++)
       {
+        int right_status = getCell(i+1,j,k)->getStatus();
+        int upper_status = getCell(i,j+1,k)->getStatus();
+        int left_status = getCell(i-1,j,k)->getStatus();
+        int lower_status = getCell(i,j-1,k)->getStatus();
+        
         if (getCell(i,j,k)->getStatus() == CELL_FULL)
         {
           float divergence = 
@@ -582,131 +605,130 @@ float Fluid::AdjustForIncompressibility() {
         }
         else if (getCell(i,j,k)->getStatus() == CELL_SURFACE)
         {
-          if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          if (right_status == CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k) - (dx/dy) * (get_new_v_plus(i,j,k) - get_new_v_plus(i,j-1,k)));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_u_plus(i-1,j,k,get_new_u_plus(i,j,k) + (dx/dy) * (get_new_v_plus(i,j,k) - get_new_v_plus(i,j-1,k)));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_v_plus(i,j,k,get_new_v_plus(i,j-1,k) - (dy/dx) * (get_new_u_plus(i,j,k) - get_new_u_plus(i-1,j,k)));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k) + (dy/dx) * (get_new_u_plus(i,j,k) - get_new_u_plus(i-1,j,k)));
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k));
             set_new_v_plus(i,j,k,get_new_v_plus(i,j-1,k));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_u_plus(i-1,j,k,get_new_u_plus(i,j,k));
             set_new_v_plus(i,j,k,get_new_v_plus(i,j-1,k));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_u_plus(i-1,j,k,get_new_u_plus(i,j,k));
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k));
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k));
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k));
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             float splitVelocity = (get_new_u_plus(i,j,k) + get_new_u_plus(i-1,j,k))/2;
             set_new_v_plus(i,j,k,splitVelocity);
             set_new_v_plus(i,j-1,k,splitVelocity);
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             float splitVelocity = (get_new_v_plus(i,j,k) + get_new_v_plus(i,j-1,k))/2;
             set_new_u_plus(i,j,k,splitVelocity);
             set_new_u_plus(i-1,j,k,splitVelocity);
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status != CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k));
-            //set_new_v_plus(i,j,k,0);
-            //set_new_v_plus(i,j-1,k,0);
+            set_new_v_plus(i,j,k,args->gravity.y()*.2);
+            set_new_v_plus(i,j-1,k,args->gravity.y()*.2);
           }
-          else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status != CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_u_plus(i-1,j,k,get_new_u_plus(i,j,k));
-            //set_new_v_plus(i,j,k,0);
-            //set_new_v_plus(i,j-1,k,0);
+            set_new_v_plus(i,j,k,args->gravity.y()*.2);
+            set_new_v_plus(i,j-1,k,args->gravity.y()*.2);
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status != CELL_EMPTY)
           {
             set_new_v_plus(i,j,k,get_new_v_plus(i,j-1,k));
             //set_new_u_plus(i,j,k,0);
             //set_new_u_plus(i-1,j,k,0);
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status != CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k));
             //set_new_u_plus(i,j,k,0);
             //set_new_u_plus(i-1,j,k,0);
           }
-          else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
-              getCell(i-1,j,k)->getStatus() == CELL_EMPTY &&
-              getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
+          else if (right_status == CELL_EMPTY &&
+              upper_status == CELL_EMPTY &&
+              left_status == CELL_EMPTY &&
+              lower_status == CELL_EMPTY)
           {
-            /*
-            set_new_v_plus(i,j,k,0);
-            set_new_v_plus(i,j-1,k,0);
+            
+            set_new_v_plus(i,j,k,args->gravity.y());
+            set_new_v_plus(i,j-1,k,args->gravity.y());
             set_new_u_plus(i,j,k,0);
             set_new_u_plus(i-1,j,k,0);
-            */
             //adjust_new_v_plus(i,j-1,k,args->gravity.y());
           }
           getCell(i,j,k)->setPressure(0);
@@ -1383,7 +1405,7 @@ void Fluid::Paint() const {
           m *= Matrix::MakeScale(0.8);
           m *= Matrix::MakeScale(Vec3f(dx,dy,dz));
           glMultMatrixf(m.glGet());
-          Cell *cell = getCell(i,j,k);
+          // Cell *cell = getCell(i,j,k);
           glColor3f(0,0,0);
           ClearCubePaint(); 
           glPopMatrix();
