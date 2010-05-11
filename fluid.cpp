@@ -666,8 +666,8 @@ float Fluid::AdjustForIncompressibility() {
               getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
           {
             set_new_u_plus(i,j,k,get_new_u_plus(i-1,j,k));
-            set_new_v_plus(i,j,k,0);
-            set_new_v_plus(i,j-1,k,0);
+            //set_new_v_plus(i,j,k,0);
+            //set_new_v_plus(i,j-1,k,0);
           }
           else if (getCell(i+1,j,k)->getStatus() != CELL_EMPTY &&
               getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
@@ -675,8 +675,8 @@ float Fluid::AdjustForIncompressibility() {
               getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
           {
             set_new_u_plus(i-1,j,k,get_new_u_plus(i,j,k));
-            set_new_v_plus(i,j,k,0);
-            set_new_v_plus(i,j-1,k,0);
+            //set_new_v_plus(i,j,k,0);
+            //set_new_v_plus(i,j-1,k,0);
           }
           else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
               getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
@@ -684,8 +684,8 @@ float Fluid::AdjustForIncompressibility() {
               getCell(i,j-1,k)->getStatus() != CELL_EMPTY)
           {
             set_new_v_plus(i,j,k,get_new_v_plus(i,j-1,k));
-            set_new_u_plus(i,j,k,0);
-            set_new_u_plus(i-1,j,k,0);
+            //set_new_u_plus(i,j,k,0);
+            //set_new_u_plus(i-1,j,k,0);
           }
           else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
               getCell(i,j+1,k)->getStatus() != CELL_EMPTY &&
@@ -693,8 +693,8 @@ float Fluid::AdjustForIncompressibility() {
               getCell(i,j-1,k)->getStatus() == CELL_EMPTY)
           {
             set_new_v_plus(i,j-1,k,get_new_v_plus(i,j,k));
-            set_new_u_plus(i,j,k,0);
-            set_new_u_plus(i-1,j,k,0);
+            //set_new_u_plus(i,j,k,0);
+            //set_new_u_plus(i-1,j,k,0);
           }
           else if (getCell(i+1,j,k)->getStatus() == CELL_EMPTY &&
               getCell(i,j+1,k)->getStatus() == CELL_EMPTY &&
