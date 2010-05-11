@@ -1,18 +1,20 @@
 grid 20 12 1
-cell_dimensions 0.01 0.01 0.01
+cell_dimensions 1 1 1
 
 flow incompressible
 xy_boundary no_slip
 yz_boundary no_slip
 zx_boundary no_slip
-viscosity 0.001
+viscosity 1
 gravity 1
 
-initial_particles none uniform
-density 8
+initial_particles none random
+density 0.1
 
 initial_velocity zero
 
-source spout 0.0001 0.015
+mass 1
 
-sink end
+source spout 0.0001 5
+
+sink bottom
