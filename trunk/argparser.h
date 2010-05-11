@@ -66,7 +66,7 @@ public:
             {
                 i++;
                 assert (i < argc);
-                assert (!strcmp(argv[i], "fluid") || !strcmp(argv[i], "both"));
+                assert (!strcmp(argv[i], "cloth") || !strcmp(argv[i], "both"));
                 collision = argv[i];
             }
             else

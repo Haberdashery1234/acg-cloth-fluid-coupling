@@ -6,7 +6,7 @@ damping 1
 provot_structural_correction .1
 provot_shear_correction .1
 
-m 30 5
+m 40 5
 
 p 2 8 0
 p 18 5 0

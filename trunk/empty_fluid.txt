@@ -1,0 +1,20 @@
+grid 10 10 10
+cell_dimensions 1 1 1
+
+flow incompressible
+xy_boundary free_slip
+yz_boundary free_slip
+zx_boundary free_slip
+viscosity 1
+gravity 1
+
+initial_particles none random
+density 30
+
+initial_velocity zero
+
+mass 1
+
+source none
+
+sink none
