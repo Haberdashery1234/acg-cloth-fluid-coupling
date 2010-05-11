@@ -821,9 +821,11 @@ void Cloth::CheckCollision()
                 continue;
               if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
               {
-                Vec3f temp = p1->getVelocity();
-                p1->setVelocity(p->getVelocity());
-                p->setVelocity(temp);
+                Vec3f p1v = p1->getVelocity()*p1->getMass();
+                Vec3f pv = p->getVelocity()*p->getMass();
+                Vec3f sum = Vec3f(p1v.x()+pv.x(),p1v.y()+pv.y(),p1v.z()+pv.z());
+                p1->setVelocity(sum);
+                p->setVelocity(sum);
               }
             }
           }
