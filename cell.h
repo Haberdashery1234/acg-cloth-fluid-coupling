@@ -13,25 +13,40 @@ public:
     // accessor
     Vec3f getPosition() const
     {
-        return position;
+      return position;
     }
     Vec3f getVelocity() const
     {
-        return velocity;
+      return Vec3f(u_vel, v_vel, w_vel);;
     }
     // modifer
     void setPosition(Vec3f p)
     {
-        position = p;
+      position = p;
+    }
+    void set_u_vel(float u)
+    {
+      u_vel = u;
+    }
+    void set_v_vel(float v)
+    {
+      v_vel = v;
+    }
+    void set_w_vel(float w)
+    {
+      w_vel = w;
     }
     void setVelocity(Vec3f v)
     {
-        velocity = v;
+      u_vel = v.x();
+      v_vel = v.y();
+      w_vel = v.z();
     }
 private:
     // representation
     Vec3f position;
     Vec3f velocity;
+    float u_vel, v_vel, w_vel;
 };
 
 // ==============================================================================

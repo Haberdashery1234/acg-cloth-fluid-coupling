@@ -8,10 +8,12 @@ zx_boundary free_slip
 viscosity 1
 gravity 1
 
-initial_particles droponly uniform
-density 8
+initial_particles droponly random
+density 30
 
 initial_velocity zero
+
+mass 1
 
 source none
 

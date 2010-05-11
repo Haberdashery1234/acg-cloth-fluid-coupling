@@ -118,8 +118,8 @@ Cloth::Cloth(ArgParser *_args)
 
   computeBoundingBox();
   
-  collision_boundary = max2(nx,ny)/box.maxDim();
-  collision_boundary *= 2.5;
+  collision_boundary = box.maxDim()/(2*max2(nx,ny));
+  collision_boundary *= 1.3;
 }
 
 Cloth::Cloth(ArgParser *_args, Fluid *_fluid)
@@ -224,8 +224,7 @@ Cloth::Cloth(ArgParser *_args, Fluid *_fluid)
   }
   
   collision_boundary = box.maxDim()/(2*max2(nx,ny));
-  collision_boundary *= 1.1;
-  std::cout << collision_boundary << "\n";
+  collision_boundary *= 1.3;
 }
 
 // ================================================================================
@@ -837,7 +836,6 @@ void Cloth::CheckCollision()
           for (unsigned int q = 0; q < pvec.size(); q++)
           {
             FluidParticle *p = pvec[q];
-            Cell *currCell = fluid->getCell(int(p->getPosition().x()/fluid->getDX()), int(p->getPosition().y()/fluid->getDY()), int(p->getPosition().z()/fluid->getDZ()));
             for (unsigned int c = 0; c < cells.size(); c++)
             {
               std::vector<ClothParticle*> pvec2 = cells[c]->getClothParticles();
@@ -846,10 +844,16 @@ void Cloth::CheckCollision()
                 ClothParticle *p1 = pvec2[cp];
                 if (abs((p1->getPosition() - p->getPosition()).Length()) <= collision_boundary)
                 {
+                  double rate = ((currentcell->getParticles().size()-1)/currentcell->getParticles().size());
                   // std::cout << "fluid-cloth collision\n";
-                  Vec3f temp = p1->getVelocity();
-                  p1->setVelocity(Vec3f(currentcell->get_u_plus(),currentcell->get_v_plus(),currentcell->get_w_plus()));
-                  p->setVelocity(-temp);
+                  Vec3f p1v = p1->getVelocity()*p1->getMass();
+                  Vec3f pv = p->getVelocity()*fluid->getMass();
+                  Vec3f sum = Vec3f(p1v.x()+pv.x(),p1v.y()+pv.y(),0);
+                  p1->setVelocity(sum);
+                  p->setVelocity(sum);
+                  currentcell->set_u_plus(currentcell->get_u_plus()*rate);
+                  currentcell->set_v_plus(currentcell->get_v_plus()*rate);
+                  currentcell->set_w_plus(currentcell->get_w_plus()*rate);
                 }
               }
             }
